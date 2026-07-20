@@ -9,6 +9,9 @@ public class PaddleController : MonoBehaviour
 
     private float minY;
     private float maxY;
+    private float lastY;
+
+    public float paddleVelocity;
 
     private void Start()
     {
@@ -17,8 +20,13 @@ public class PaddleController : MonoBehaviour
     }
     private void Update()
     {
+        lastY = transform.position.y;
+
         float input = Input.GetAxisRaw("Vertical");
+
         Move(input);
+
+        paddleVelocity = (transform.position.y - lastY) / Time.deltaTime;
     }
 
     private void Move(float input)
