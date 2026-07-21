@@ -20,7 +20,7 @@ public class PaddleController : MonoBehaviour
     }
     private void Update()
     {
-        float lastY = transform.position.y;
+        lastY = transform.position.y;
 
         // klávesnice
         float input = Input.GetAxisRaw("Vertical");
