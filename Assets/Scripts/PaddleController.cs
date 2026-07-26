@@ -74,4 +74,40 @@ public class PaddleController : MonoBehaviour
         pos.y = Mathf.Lerp(pos.y, clampedY, Time.deltaTime * 10f);
         transform.position = pos;
     }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        BallController ball = collision.gameObject.GetComponent<BallController>();
+
+        if (ball == null)
+            return;
+
+        float paddleHeight = GetComponent<Collider2D>().bounds.size.y;
+
+        float offset =
+            (collision.transform.position.y - transform.position.y) /
+            (paddleHeight / 2f);
+
+
+        offset = Mathf.Clamp(offset, -1f, 1f);
+
+        float maxBounceAngle = 60f;
+        float angle = offset * maxBounceAngle;
+
+        Vector2 direction;
+
+        if (transform.position.x < 0)
+        {
+            direction = Quaternion.Euler(0, 0, angle) * Vector2.right;
+        }
+        else
+        {
+            direction = Quaternion.Euler(0, 0, angle) * Vector2.left;
+        }
+
+        collision.rigidbody.linearVelocity =
+            direction.normalized * ball.CurrentSpeed;
+
+        ball.IncreaseSpeed();
+    }
 }
