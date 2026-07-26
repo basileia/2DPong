@@ -2,9 +2,16 @@ using UnityEngine;
 
 public class BallController : MonoBehaviour
 {
-    [SerializeField] private float speed = 8f;
+    [Header("Movement")]
+    [SerializeField] private float startSpeed = 8f;
+    [SerializeField] private float speedIncrease = 0.3f;
+    [SerializeField] private float maxSpeed = 16f;
+
     private Rigidbody2D rb;
+
     private bool allowAntiStuck = true;
+
+    public float CurrentSpeed { get; private set; }
 
     private void Awake()
     {
@@ -13,43 +20,71 @@ public class BallController : MonoBehaviour
 
     private void Start()
     {
+        CurrentSpeed = startSpeed;
         LaunchBall();
     }
 
     private void Update()
     {
-        if (allowAntiStuck && Mathf.Abs(rb.linearVelocity.y) < 0.1f)
+        if (allowAntiStuck)
         {
-            float newY = Random.Range(-0.3f, 0.3f);
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, newY).normalized * speed;
+            PreventFlatMovement();
         }
     }
 
     private void LaunchBall()
     {
-        float x = Random.Range(0, 2) == 0 ? -1 : 1;
-        float angle = Random.Range(15f, 45f) * Mathf.Deg2Rad;
+        float angle = Random.Range(20f, 60f);
 
-        float y = Mathf.Sin(angle) * (Random.Range(0, 2) == 0 ? -1 : 1);
+        Vector2 direction = Quaternion.Euler(0, 0, Random.Range(0, 2) == 0 ? angle : -angle) * Vector2.right;
 
-        Vector2 direction = new Vector2(x, y).normalized;
-        rb.linearVelocity = direction * speed;
+        if (Random.Range(0, 2) == 0)
+            direction.x *= -1;
+
+        rb.linearVelocity = direction.normalized * CurrentSpeed;
     }
 
     public void ResetBall()
     {
         transform.position = Vector3.zero;
+
         rb.linearVelocity = Vector2.zero;
+
+        CurrentSpeed = startSpeed;
 
         allowAntiStuck = false;
 
         Invoke(nameof(LaunchBall), 1f);
         Invoke(nameof(EnableAntiStuck), 1.5f);
-
-        
     }
+
     private void EnableAntiStuck()
     {
         allowAntiStuck = true;
+    }
+
+    public void IncreaseSpeed()
+    {
+        CurrentSpeed += speedIncrease;
+        CurrentSpeed = Mathf.Min(CurrentSpeed, maxSpeed);
+
+        rb.linearVelocity = rb.linearVelocity.normalized * CurrentSpeed;
+    }
+
+    private void PreventFlatMovement()
+    {
+        Vector2 dir = rb.linearVelocity.normalized;
+
+        if (Mathf.Abs(dir.y) < 0.12f)
+        {
+            dir.y = dir.y >= 0 ? 0.12f : -0.12f;
+            rb.linearVelocity = dir.normalized * CurrentSpeed;
+        }
+
+        if (Mathf.Abs(dir.x) < 0.25f)
+        {
+            dir.x = dir.x >= 0 ? 0.25f : -0.25f;
+            rb.linearVelocity = dir.normalized * CurrentSpeed;
+        }
     }
 }
